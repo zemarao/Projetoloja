@@ -8,11 +8,15 @@ from sqlalchemy.orm import sessionmaker
 app = Flask(__name__)
 
 # Configuração do banco de dados
-DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///produtos.db')  # Heroku define esta variável automaticamente
+DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///produtos.db')
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://")
+
 engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
 session = Session()
 Base = declarative_base()
+
 
 # Modelo de Produto
 class Produto(Base):
