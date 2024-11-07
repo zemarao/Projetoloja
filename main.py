@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 app = Flask(__name__)
 
 # Configuração do banco de dados
-DATABASE_URL = os.environ['DATABASE_URL']  # Heroku define esta variável automaticamente
+DATABASE_URL = os.environ.get['DATABASE_URL']  # Heroku define esta variável automaticamente
 engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
 session = Session()
