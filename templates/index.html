@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Minha Loja de Quadrinhos</title>
+</head>
+<body>
+    <h1>Minha Loja de Quadrinhos</h1>
+    <form action="/adicionar" method="post">
+        Nome: <input type="text" name="nome" required>
+        Preço: <input type="text" name="preco" required>
+        <button type="submit">Adicionar Produto</button>
+    </form>
+
+    <h2>Lista de Produtos</h2>
+    <ul>
+        {% for produto in produtos %}
+            <li>{{ produto['nome'] }} - R$ {{ produto['preco'] }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
