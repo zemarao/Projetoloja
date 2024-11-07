@@ -1,7 +1,29 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
 import os
+import xmltodict
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 app = Flask(__name__)
+
+# Configuração do banco de dados
+DATABASE_URL = os.environ['DATABASE_URL']  # Heroku define esta variável automaticamente
+engine = create_engine(DATABASE_URL)
+Session = sessionmaker(bind=engine)
+session = Session()
+Base = declarative_base()
+
+# Modelo de Produto
+class Produto(Base):
+    __tablename__ = 'produtos'
+    id = Column(Integer, primary_key=True)
+    nome = Column(String)
+    quantidade = Column(Integer)
+    preco = Column(String)
+
+# Cria a tabela se não existir
+Base.metadata.create_all(engine)
 
 # Página inicial
 @app.route('/')
@@ -13,11 +35,36 @@ def index():
 def estoque():
     return render_template('estoque.html')
 
-# Sub-seções de Gerenciamento de Estoque
-@app.route('/estoque/compras')
+# Upload e processamento de XML para a seção Compras
+@app.route('/estoque/compras', methods=['GET', 'POST'])
 def compras():
-    return "<h2>Compras</h2><p>Conteúdo sobre compras.</p>"
+    if request.method == 'POST':
+        # Verifica se um arquivo foi enviado
+        if 'file' not in request.files:
+            return "Nenhum arquivo enviado."
+        file = request.files['file']
 
+        # Processa o arquivo XML
+        if file.filename.endswith('.xml'):
+            data = xmltodict.parse(file.read())
+            produtos = data['produtos']['produto']
+
+            # Insere os produtos no banco de dados
+            for p in produtos:
+                produto = Produto(
+                    nome=p['nome'],
+                    quantidade=int(p['quantidade']),
+                    preco=p['preco']
+                )
+                session.add(produto)
+            session.commit()
+            return "Produtos adicionados com sucesso ao estoque!"
+        else:
+            return "Formato de arquivo não suportado. Envie um arquivo XML."
+
+    return render_template('compras.html')
+
+# Sub-seções de Gerenciamento de Estoque
 @app.route('/estoque/transferencia')
 def transferencia():
     return "<h2>Transferência de Estoque</h2><p>Conteúdo sobre transferência de estoque.</p>"
