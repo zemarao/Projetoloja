@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Compras - Gerenciamento de Estoque</title>
+</head>
+<body>
+    <h1>Upload de XML para Compras</h1>
+    <form action="/estoque/compras" method="post" enctype="multipart/form-data">
+        <label for="file">Selecione um arquivo XML:</label>
+        <input type="file" name="file" id="file" accept=".xml" required>
+        <button type="submit">Enviar</button>
+    </form>
+    <br>
+    <a href="/estoque">Voltar ao Gerenciamento de Estoque</a>
+</body>
+</html>
