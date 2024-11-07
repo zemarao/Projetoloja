@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+import os
 
 app = Flask(__name__)
 
@@ -50,5 +51,7 @@ def relatorios():
 def configuracoes():
     return "<h2>Configurações</h2><p>Conteúdo sobre configurações.</p>"
 
+# Executa a aplicação
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
