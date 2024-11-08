@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request
 import os
-import xmltodict
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from processa_xml import processar_xml  # Importa a função modularizada
 
 app = Flask(__name__)
 
@@ -16,7 +16,6 @@ engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
 session = Session()
 Base = declarative_base()
-
 
 # Modelo de Produto
 class Produto(Base):
@@ -44,29 +43,29 @@ def estoque():
 def compras():
     if request.method == 'POST':
         # Verifica se um arquivo foi enviado
-        if 'file' not in request.files:
+        if 'file' not in request.files or request.files['file'].filename == '':
             return "Nenhum arquivo enviado."
-        file = request.files['file']
 
-        # Processa o arquivo XML
+        file = request.files['file']
         if file.filename.endswith('.xml'):
-            data = xmltodict.parse(file.read())
-            produtos = data['produtos']['produto']
+            # Chama a função modular para processar o XML
+            nome_destinatario, produtos = processar_xml(file.read())
 
             # Insere os produtos no banco de dados
-            for p in produtos:
-                produto = Produto(
-                    nome=p['nome'],
-                    quantidade=int(p['quantidade']),
-                    preco=p['preco']
+            for produto in produtos:
+                novo_produto = Produto(
+                    nome=produto['Descrição do Produto'],
+                    quantidade=int(float(produto['Quantidade Comercial'])),  # Converte para int
+                    preco=produto['Valor Unitário Comercial']
                 )
-                session.add(produto)
+                session.add(novo_produto)
             session.commit()
-            return "Produtos adicionados com sucesso ao estoque!"
+
+            return render_template('compras.html', nome_destinatario=nome_destinatario, produtos=produtos)
         else:
             return "Formato de arquivo não suportado. Envie um arquivo XML."
 
-    return render_template('compras.html')
+    return render_template('compras.html', nome_destinatario=None, produtos=None)
 
 # Sub-seções de Gerenciamento de Estoque
 @app.route('/estoque/transferencia')
@@ -77,7 +76,7 @@ def transferencia():
 def consignados():
     return "<h2>Consignados</h2><p>Conteúdo sobre consignados.</p>"
 
-# Outras seções (Vendas, Clientes, etc.) continuam como antes
+# Outras seções (Vendas, Clientes, etc.)
 @app.route('/vendas')
 def vendas():
     return "<h2>Vendas</h2><p>Conteúdo sobre vendas.</p>"
