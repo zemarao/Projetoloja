@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Enviar XML</title>
+</head>
+<body>
+    <h1>Enviar XML</h1>
+    <form action="{{ url_for('enviar_xml') }}" method="POST">
+        <label for="xml_textarea">Cole o XML aqui:</label><br>
+        <textarea id="xml_textarea" name="xml_textarea" rows="20" cols="80"></textarea><br>
+        <button type="submit">Processar</button>
+    </form>
+    <a href="{{ url_for('compras') }}">Voltar</a>
+</body>
+</html>

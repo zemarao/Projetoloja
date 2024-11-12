@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultado do XML</title>
+</head>
+<body>
+    <h1>Resultado do Processamento do XML</h1>
+    <h2>Emitente: {{ emitente }}</h2>
+
+    <h3>Produtos:</h3>
+    <ul>
+        {% for produto in produtos %}
+            <li>
+                <strong>Descrição:</strong> {{ produto['xProd'] }}<br>
+                <strong>Código:</strong> {{ produto['cProd'] }}<br>
+                <strong>Quantidade:</strong> {{ produto['qCom'] }}<br>
+                <strong>Valor Unitário:</strong> R$ {{ produto['vUnCom'] }}<br>
+                <strong>Valor Total:</strong> R$ {{ produto['vProd'] }}<br>
+                <strong>Desconto:</strong> R$ {{ produto['vDesc'] }}<br>
+                <strong>Valor Ajustado:</strong> R$ {{ produto['valor_ajustado'] }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <a href="{{ url_for('enviar_xml') }}">Voltar</a>
+</body>
+</html>

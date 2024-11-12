@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 import os
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from processa_xml import processar_xml  # Importa a função modularizada
+from processa_xml import extrair_informacoes
 
 app = Flask(__name__)
 
@@ -16,6 +16,7 @@ engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
 session = Session()
 Base = declarative_base()
+
 
 # Modelo de Produto
 class Produto(Base):
@@ -38,49 +39,34 @@ def index():
 def estoque():
     return render_template('estoque.html')
 
-# Upload e processamento de XML para a seção Compras
-@app.route('/estoque/compras', methods=['GET', 'POST'])
-def compras():
-    if request.method == 'POST':
-        # Verifica se um arquivo foi enviado
-        if 'file' not in request.files or request.files['file'].filename == '':
-            return "Nenhum arquivo enviado."
-
-        file = request.files['file']
-        if file.filename.endswith('.xml'):
-            # Chama a função modular para processar o XML
-            nome_destinatario, produtos = processar_xml(file.read())
-
-            # Insere os produtos no banco de dados
-            for produto in produtos:
-                novo_produto = Produto(
-                    nome=produto['Descrição do Produto'],
-                    quantidade=int(float(produto['Quantidade Comercial'])),  # Converte para int
-                    preco=produto['Valor Unitário Comercial']
-                )
-                session.add(novo_produto)
-            session.commit()
-
-            return render_template('compras.html', nome_destinatario=nome_destinatario, produtos=produtos)
-        else:
-            return "Formato de arquivo não suportado. Envie um arquivo XML."
-
-    return render_template('compras.html', nome_destinatario=None, produtos=None)
-
 # Sub-seções de Gerenciamento de Estoque
-@app.route('/estoque/transferencia')
-def transferencia():
-    return "<h2>Transferência de Estoque</h2><p>Conteúdo sobre transferência de estoque.</p>"
+@app.route('/estoque/compras')
+def compras():
+    return render_template('compras.html')
 
-@app.route('/estoque/consignados')
-def consignados():
-    return "<h2>Consignados</h2><p>Conteúdo sobre consignados.</p>"
+# Rota para Enviar XML
+@app.route('/estoque/compras/enviar', methods=['GET', 'POST'])
+def enviar_xml():
+    if request.method == 'POST':
+        xml_content = request.form.get('xml_textarea')  # Captura o texto da caixa de texto
+        if not xml_content:
+            return "Nenhum conteúdo foi enviado para processamento."
 
-# Outras seções (Vendas, Clientes, etc.)
-@app.route('/vendas')
-def vendas():
-    return "<h2>Vendas</h2><p>Conteúdo sobre vendas.</p>"
+        try:
+            # Processa o XML usando a função importada
+            emitente, produtos = extrair_informacoes(xml_content)
 
+            # Renderiza a página de resultado com as informações
+            return render_template('resultado.html', emitente=emitente, produtos=produtos)
+
+        except ValueError as e:
+            # Mostra o erro para o usuário
+            return f"Erro ao processar o XML: {e}"
+
+    return render_template('enviar_xml.html')
+
+
+# Outras seções (Clientes, Fornecedores, etc.)
 @app.route('/clientes')
 def clientes():
     return "<h2>Clientes</h2><p>Conteúdo sobre clientes.</p>"
